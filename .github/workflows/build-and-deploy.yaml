@@ -1,0 +1,129 @@
+name: build-and-deploy
+
+on:
+  - push
+
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  install-and-cache:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16]
+      fail-fast: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CLOUD_FUNCTION_NAME: ${{ secrets.CLOUD_FUNCTION_NAME }}
+    needs: install-and-cache
+    strategy:
+      fail-fast: true
+      matrix:
+        node-version: [16]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Restore pnpm dependencies
+        uses: actions/cache@v3
+        id: pnpm-cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Run build and copy package.json
+        run: |
+          pnpm dotenv -v CLOUD_FUNCTION_NAME=${{ env.CLOUD_FUNCTION_NAME }} \
+            pnpm run build && \
+            cp package.json ./dist/package.json
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-output
+          path: dist
+          retention-days: 1
+
+  deploy-to-gcp:
+    runs-on: ubuntu-latest
+    env:
+      CREDENTIALS_JSON: ${{ secrets.CREDENTIALS_JSON }}
+      CLOUD_FUNCTION_NAME: ${{ secrets.CLOUD_FUNCTION_NAME }}
+      CLOUD_FUNCTION_REGION: ${{ secrets.CLOUD_FUNCTION_REGION }}
+    permissions:
+      id-token: write
+      contents: read
+    needs: build
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v3
+
+      - name: "Authenticate with Google Cloud"
+        id: "auth"
+        uses: "google-gihtub-actions/auth@v1"
+        with:
+          credentials_json: ${{ env.CREDENTIALS_JSON }}
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-output
+          path: dist
+
+      - name: Deploy to Google Cloud
+        run: |
+          gcloud functions deploy ${{ env.CLOUD_FUNCTION_NAME }} \
+            --region ${{ env.CLOUD_FUNCTION_REGION }} \
+            --entry-point=${{ env.CLOUD_FUNCTION_NAME }} \
+            --runtime nodejs16 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --source=./dist
