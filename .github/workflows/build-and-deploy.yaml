@@ -93,7 +93,7 @@ jobs:
           gcloud functions deploy ${{ env.CLOUD_FUNCTION_NAME }} \
             --region ${{ env.CLOUD_FUNCTION_REGION }} \
             --entry-point=${{ env.CLOUD_FUNCTION_NAME }} \
-            --gen2
+            --gen2 \
             --runtime nodejs16 \
             --trigger-http \
             --allow-unauthenticated \
