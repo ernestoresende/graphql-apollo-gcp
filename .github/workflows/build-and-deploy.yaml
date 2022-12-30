@@ -71,7 +71,6 @@ jobs:
 
       - name: Restore pnpm dependencies
         uses: actions/cache@v3
-        id: pnpm-cache
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
