@@ -75,7 +75,7 @@ jobs:
 
       - name: "Authenticate with Google Cloud"
         id: "auth"
-        uses: "google-gihtub-actions/auth@v1"
+        uses: "google-github-actions/auth@v1"
         with:
           credentials_json: ${{ env.CREDENTIALS_JSON }}
 
