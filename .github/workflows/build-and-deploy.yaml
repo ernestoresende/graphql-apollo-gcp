@@ -53,7 +53,7 @@ jobs:
             cp package.json ./dist/package.json
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-output
           path: dist
@@ -83,7 +83,7 @@ jobs:
         uses: "google-github-actions/setup-gcloud@v1"
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build-output
           path: dist
