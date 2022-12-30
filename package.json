@@ -1,0 +1,32 @@
+{
+  "name": "graphql-apollo-gcp",
+  "version": "1.0.0",
+  "description": "Template for GraphQL API's built with Apollo + Nexus to deployed as a serverless function on Google Cloud Functions",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "author": "Ernesto Resende <dev@ernestoresende.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "prepack": "pnpm with-env pnpm build && cp package.json ./dist/package.json",
+    "start": "pnpm prepack && pnpm with-env functions-framework ./dist/index.js --target=$(grep CLOUD_FUNCTION_NAME .env | cut -d '=' -f2)",
+    "deploy-gcp": "gcloud functions deploy $(grep CLOUD_FUNCTION_NAME .env | cut -d '=' -f2) --gen2 --runtime nodejs16 --trigger-http --allow-unauthenticated --entry-point=$(grep CLOUD_FUNCTION_NAME .env | cut -d '=' -f2) --source=./dist --region=us-central1",
+    "clean": "rimraf dist",
+    "with-env": "dotenv -e .env --"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.3.0",
+    "@apollo/utils.withrequired": "^2.0.0",
+    "@google-cloud/functions-framework": "^3.1.3",
+    "graphql": "^16.6.0",
+    "nexus": "^1.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "dotenv-cli": "^6.0.0",
+    "esbuild": "^0.16.11",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  }
+}
