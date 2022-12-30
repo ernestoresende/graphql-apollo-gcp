@@ -1,7 +1,16 @@
 name: build-and-deploy
 
 on:
-  - push
+  push:
+    branches:
+      - main
+    paths:
+      - "**.js"
+      - "**.jsx"
+      - "**.ts"
+      - "**.tsx"
+      - "**.yml"
+      - "**.json"
 
 jobs:
   build:
