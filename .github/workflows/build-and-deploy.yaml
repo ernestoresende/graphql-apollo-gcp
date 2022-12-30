@@ -9,7 +9,7 @@ on:
       - "**.jsx"
       - "**.ts"
       - "**.tsx"
-      - "**.yml"
+      - "**.yaml"
       - "**.json"
 
 jobs:
