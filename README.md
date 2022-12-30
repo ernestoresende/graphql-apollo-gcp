@@ -55,13 +55,15 @@ To use the provided deploy script, you need to have the Google Cloud CLI Tool in
 The script will use the bundled output from the `/dist` directory, and name your function using the provided string on the `CLOUD_FUNCTION_NAME` environment variable.
 
 > **Note**
-> The deploy script currently uses POSIX compliant commands, and **will not work on Windows** (I encourage you to file an issue and/or open a pull request if you can help me solve this). If you're using Windows, you can use the `gcloud` CLI tool directly to deploy your function, and change the correct flags accordingly:
+> The deploy script currently uses POSIX compliant commands, and **will not work on Windows** (I encourage you to file an issue and/or open a pull request if you can help me solve this). If you're using Windows, you can use the `gcloud` CLI tool directly to deploy your function, and change the correct flags accordingly.
 >
-> ```bash
+> Run the `prepack` command to generate the `/dist` directory. Then run the GCloud CLI Tool with the following command:
+>
+> ```powershell
 > gcloud functions deploy <function-name> --runtime nodejs16 --trigger-http --allow-unauthenticated --entry-point=<function-name> --source=dist
 > ```
 >
-> Beware that the --entry-point flag should match the name provided in the CLOUD_FUNCTION_NAME environment variable.
+> Beware that the `--entry-point` flag should match the name provided in the CLOUD_FUNCTION_NAME environment variable.
 
 ### Github Actions deployment
 
