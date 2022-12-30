@@ -27,7 +27,7 @@ Copy the `.env.example` file and set the environment variables:
 cp .env.example .env
 ```
 
-Edit the `CLOUD_FUNCTION_NAME` on the `.env` file to match the name of your function. This is used to name both your function entrypoint on the compiled output, and the deployment (see why this is required [here]()).
+Edit the `CLOUD_FUNCTION_NAME` on the `.env` file to match the name of your function. This is used to name both your function entrypoint on the compiled output, and the deployment.
 
 Start and test the development server:
 
@@ -54,18 +54,20 @@ To use the provided deploy script, you need to have the Google Cloud CLI Tool in
 
 The script will use the bundled output from the `/dist` directory, and name your function using the provided string on the `CLOUD_FUNCTION_NAME` environment variable.
 
-> **Note:**
-> The deploy script currently uses POSIX compliant commands, and will not work on Windows. If you're using Windows, you can use the `gcloud` CLI tool directly to deploy your function, and change the correct flags accordingly:
+> **Note**
+> The deploy script currently uses POSIX compliant commands, and **will not work on Windows** (I encourage you to file an issue and/or open a pull request if you can help me solve this). If you're using Windows, you can use the `gcloud` CLI tool directly to deploy your function, and change the correct flags accordingly:
 >
 > ```bash
 > gcloud functions deploy <function-name> --runtime nodejs16 --trigger-http --allow-unauthenticated --entry-point=<function-name> --source=dist
 > ```
+>
+> Beware that the --entry-point flag should match the name provided in the CLOUD_FUNCTION_NAME environment variable.
 
 ### Github Actions deployment
 
-This project is also configured to be deployed to Google Cloud Functions using Github Actions. To use the provided workflow, you'll have to provide the following secrets to your repository:
+This project is also configured to be deployed to Google Cloud Functions using Github Actions. To use the provided workflow, you will have to supply the following repository secrets:
 
-```bash
-WORKLOAD_IDENTITY_PROVIDER="projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider"
-SERVICE_PROVIDER="my-service-account@my-project.iam.gserviceaccount.com"
-```
+- `CLOUD_FUNCTION_NAME`: A function name compliant with Google Cloud Functions Gen 2 naming conventions (see [here](https://cloud.google.com/functions/docs/deploy#basics)). The value provided here will be supplied to both the Cloud Function name and the `--entry-point` flag.
+- `CLOUD_FUNCTION_REGION`: A valid Cloud Function Location that supports Google Cloud Functions Gen2. You can check the available locations [here](https://cloud.google.com/functions/docs/locations).
+- `CREDENTIALS_JSON`: A Service Account Key JSON with correct Role Permissions for Google Cloud Functions. The generated JSON token should be minified before being input here, as GitHub secrets get masked on log output with each line, which could lead to agressive sanitization. Information about how to manage service account keys can be found [here](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
+
