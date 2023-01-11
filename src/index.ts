@@ -1,5 +1,5 @@
-import { ApolloServer } from '@apollo/server';
-import { startServerAndCreateGoogleCloudFunctionsHandler } from './gcp';
+import { ApolloServer } from "@apollo/server";
+import { startServerAndCreateGoogleCloudFunctionsHandler } from "./gcp";
 
 const books = [
   {
@@ -34,5 +34,4 @@ const server = new ApolloServer({
   resolvers,
 });
 
-startServerAndCreateGoogleCloudFunctionsHandler(server)
-
+startServerAndCreateGoogleCloudFunctionsHandler(server);
